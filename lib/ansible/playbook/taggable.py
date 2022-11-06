@@ -29,6 +29,8 @@ class Taggable:
 
     untagged = frozenset(['untagged'])
     tags = FieldAttribute(isa='list', default=list, listof=(string_types, int), extend=True)
+    set_tags = FieldAttribute(isa='list', default=list, listof=(string_types, int), extend=True)
+    unset_tags = FieldAttribute(isa='list', default=list, listof=(string_types, int), extend=True)
 
     def _load_tags(self, attr, ds):
         if isinstance(ds, list):
@@ -42,7 +44,7 @@ class Taggable:
         else:
             raise AnsibleError('tags must be specified as a list', obj=ds)
 
-    def evaluate_tags(self, only_tags, skip_tags, all_vars):
+    def evaluate_tags(self, only_tags, skip_tags, all_vars, set_tags=frozenset(), unset_tags=frozenset()):
         ''' this checks if the current item should be executed depending on tag options '''
 
         if self.tags:
@@ -62,6 +64,9 @@ class Taggable:
             tags = self.untagged
 
         should_run = True  # default, tasks to run
+
+        only_tags.update(set_tags)
+        skip_tags.update(unset_tags)
 
         if only_tags:
             if 'always' in tags:
