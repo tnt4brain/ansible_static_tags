@@ -10,11 +10,6 @@ from ...constants import (
     SUPPORTED_PYTHON_VERSIONS,
 )
 
-from ...completion import (
-    AuditMode,
-    CGroupVersion,
-)
-
 from ...util import (
     REMOTE_ARCHITECTURES,
 )
@@ -32,7 +27,6 @@ from ..argparsing.parsers import (
     BooleanParser,
     ChoicesParser,
     DocumentationState,
-    EnumValueChoicesParser,
     IntegerParser,
     KeyValueParser,
     Parser,
@@ -109,8 +103,6 @@ class DockerKeyValueParser(KeyValueParser):
         return dict(
             python=PythonParser(versions=self.versions, allow_venv=False, allow_default=self.allow_default),
             seccomp=ChoicesParser(SECCOMP_CHOICES),
-            cgroup=EnumValueChoicesParser(CGroupVersion),
-            audit=EnumValueChoicesParser(AuditMode),
             privileged=BooleanParser(),
             memory=IntegerParser(),
         )
@@ -124,8 +116,6 @@ class DockerKeyValueParser(KeyValueParser):
         state.sections[f'{"controller" if self.controller else "target"} {section_name} (comma separated):'] = '\n'.join([
             f'  python={python_parser.document(state)}',
             f'  seccomp={ChoicesParser(SECCOMP_CHOICES).document(state)}',
-            f'  cgroup={EnumValueChoicesParser(CGroupVersion).document(state)}',
-            f'  audit={EnumValueChoicesParser(AuditMode).document(state)}',
             f'  privileged={BooleanParser().document(state)}',
             f'  memory={IntegerParser().document(state)}  # bytes',
         ])

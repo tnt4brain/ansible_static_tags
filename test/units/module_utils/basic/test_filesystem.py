@@ -143,8 +143,6 @@ class TestOtherFilesystem(ModuleTestCase):
             argument_spec=dict(),
         )
 
-        am.selinux_enabled = lambda: False
-
         file_args = {
             'path': '/path/to/file',
             'mode': None,

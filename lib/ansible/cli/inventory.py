@@ -13,6 +13,7 @@ from ansible.cli import CLI
 import sys
 
 import argparse
+from operator import attrgetter
 
 from ansible import constants as C
 from ansible import context
@@ -272,11 +273,11 @@ class InventoryCLI(CLI):
 
         result = [self._graph_name('@%s:' % group.name, depth)]
         depth = depth + 1
-        for kid in group.child_groups:
+        for kid in sorted(group.child_groups, key=attrgetter('name')):
             result.extend(self._graph_group(kid, depth))
 
         if group.name != 'all':
-            for host in group.hosts:
+            for host in sorted(group.hosts, key=attrgetter('name')):
                 result.append(self._graph_name(host.name, depth))
                 if context.CLIARGS['show_vars']:
                     result.extend(self._show_vars(self._get_host_variables(host), depth + 1))
@@ -302,9 +303,9 @@ class InventoryCLI(CLI):
             results = {}
             results[group.name] = {}
             if group.name != 'all':
-                results[group.name]['hosts'] = [h.name for h in group.hosts]
+                results[group.name]['hosts'] = [h.name for h in sorted(group.hosts, key=attrgetter('name'))]
             results[group.name]['children'] = []
-            for subgroup in group.child_groups:
+            for subgroup in sorted(group.child_groups, key=attrgetter('name')):
                 results[group.name]['children'].append(subgroup.name)
                 if subgroup.name not in seen:
                     results.update(format_group(subgroup))
@@ -342,14 +343,14 @@ class InventoryCLI(CLI):
 
             # subgroups
             results[group.name]['children'] = {}
-            for subgroup in group.child_groups:
+            for subgroup in sorted(group.child_groups, key=attrgetter('name')):
                 if subgroup.name != 'all':
                     results[group.name]['children'].update(format_group(subgroup))
 
             # hosts for group
             results[group.name]['hosts'] = {}
             if group.name != 'all':
-                for h in group.hosts:
+                for h in sorted(group.hosts, key=attrgetter('name')):
                     myvars = {}
                     if h.name not in seen:  # avoid defining host vars more than once
                         seen.append(h.name)
@@ -376,7 +377,7 @@ class InventoryCLI(CLI):
             results[group.name] = {}
 
             results[group.name]['children'] = []
-            for subgroup in group.child_groups:
+            for subgroup in sorted(group.child_groups, key=attrgetter('name')):
                 if subgroup.name == 'ungrouped' and not has_ungrouped:
                     continue
                 if group.name != 'all':
@@ -384,7 +385,7 @@ class InventoryCLI(CLI):
                 results.update(format_group(subgroup))
 
             if group.name != 'all':
-                for host in group.hosts:
+                for host in sorted(group.hosts, key=attrgetter('name')):
                     if host.name not in seen:
                         seen.add(host.name)
                         host_vars = self._get_host_variables(host=host)

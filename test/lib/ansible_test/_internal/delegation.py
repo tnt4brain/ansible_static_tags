@@ -8,10 +8,6 @@ import os
 import tempfile
 import typing as t
 
-from .constants import (
-    STATUS_HOST_CONNECTION_ERROR,
-)
-
 from .locale_util import (
     STANDARD_LOCALE,
 )
@@ -204,7 +200,6 @@ def delegate_command(args: EnvironmentConfig, host_state: HostState, exclude: li
             con.user = pytest_user
 
         success = False
-        status = 0
 
         try:
             # When delegating, preserve the original separate stdout/stderr streams, but only when the following conditions are met:
@@ -214,16 +209,9 @@ def delegate_command(args: EnvironmentConfig, host_state: HostState, exclude: li
             output_stream = OutputStream.ORIGINAL if args.display_stderr and not args.interactive else None
             con.run(insert_options(command, options), capture=False, interactive=args.interactive, output_stream=output_stream)
             success = True
-        except SubprocessError as ex:
-            status = ex.status
-            raise
         finally:
             if host_delegation:
                 download_results(args, con, content_root, success)
-
-            if not success and status == STATUS_HOST_CONNECTION_ERROR:
-                for target in host_state.target_profiles:
-                    target.on_target_failure()  # when the controller is delegated, report failures after delegation fails
 
 
 def insert_options(command, options):

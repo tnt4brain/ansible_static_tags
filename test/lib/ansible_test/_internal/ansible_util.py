@@ -51,10 +51,6 @@ from .host_configs import (
     PythonConfig,
 )
 
-from .thread import (
-    mutex,
-)
-
 
 def parse_inventory(args: EnvironmentConfig, inventory_path: str) -> dict[str, t.Any]:
     """Return a dict parsed from the given inventory file."""
@@ -196,7 +192,6 @@ def configure_plugin_paths(args: CommonConfig) -> dict[str, str]:
     return env
 
 
-@mutex
 def get_ansible_python_path(args: CommonConfig) -> str:
     """
     Return a directory usable for PYTHONPATH, containing only the ansible package.

@@ -2,7 +2,6 @@ namespace: ns
 name: col
 version: 1.0.0
 readme: README.rst
-license_file: GPL
 authors:
     - Ansible
 manifest:

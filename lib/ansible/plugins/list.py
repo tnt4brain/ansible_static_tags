@@ -112,7 +112,10 @@ def _list_plugins_from_paths(ptype, dirs, collection, depth=0):
 def _list_j2_plugins_from_file(collection, plugin_path, ptype, plugin_name):
 
     ploader = getattr(loader, '{0}_loader'.format(ptype))
-    file_plugins = ploader.get_contained_plugins(collection, plugin_path, plugin_name)
+    if collection in ('ansible.builtin', 'ansible.legacy'):
+        file_plugins = ploader.all()
+    else:
+        file_plugins = ploader.get_contained_plugins(collection, plugin_path, plugin_name)
     return file_plugins
 
 

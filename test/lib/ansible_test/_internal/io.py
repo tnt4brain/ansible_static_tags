@@ -1,6 +1,7 @@
 """Functions for disk IO."""
 from __future__ import annotations
 
+import errno
 import io
 import json
 import os
@@ -31,7 +32,11 @@ def read_binary_file(path: str) -> bytes:
 
 def make_dirs(path: str) -> None:
     """Create a directory at path, including any necessary parent directories."""
-    os.makedirs(to_bytes(path), exist_ok=True)
+    try:
+        os.makedirs(to_bytes(path))
+    except OSError as ex:
+        if ex.errno != errno.EEXIST:
+            raise
 
 
 def write_json_file(path: str,

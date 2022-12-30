@@ -48,7 +48,11 @@ def main():
             __import__(name)
             return sys.modules[name]
 
-    from io import BytesIO, TextIOWrapper
+    try:
+        # noinspection PyCompatibility
+        from StringIO import StringIO
+    except ImportError:
+        from io import StringIO
 
     try:
         from importlib.util import spec_from_loader, module_from_spec
@@ -432,9 +436,8 @@ def main():
     class Capture:
         """Captured output and/or exception."""
         def __init__(self):
-            # use buffered IO to simulate StringIO; allows Ansible's stream patching to behave without warnings
-            self.stdout = TextIOWrapper(BytesIO())
-            self.stderr = TextIOWrapper(BytesIO())
+            self.stdout = StringIO()
+            self.stderr = StringIO()
 
     def capture_report(path, capture, messages):
         """Report on captured output.
@@ -442,17 +445,12 @@ def main():
         :type capture: Capture
         :type messages: set[str]
         """
-        # since we're using buffered IO, flush before checking for data
-        capture.stdout.flush()
-        capture.stderr.flush()
-        stdout_value = capture.stdout.buffer.getvalue()
-        if stdout_value:
-            first = stdout_value.decode().strip().splitlines()[0].strip()
+        if capture.stdout.getvalue():
+            first = capture.stdout.getvalue().strip().splitlines()[0].strip()
             report_message(path, 0, 0, 'stdout', first, messages)
 
-        stderr_value = capture.stderr.buffer.getvalue()
-        if stderr_value:
-            first = stderr_value.decode().strip().splitlines()[0].strip()
+        if capture.stderr.getvalue():
+            first = capture.stderr.getvalue().strip().splitlines()[0].strip()
             report_message(path, 0, 0, 'stderr', first, messages)
 
     def report_message(path, line, column, code, message, messages):

@@ -479,7 +479,6 @@ def build_collection(u_collection_path, u_output_path, force):
         collection_meta['name'],  # type: ignore[arg-type]
         collection_meta['build_ignore'],  # type: ignore[arg-type]
         collection_meta['manifest'],  # type: ignore[arg-type]
-        collection_meta['license_file'],  # type: ignore[arg-type]
     )
 
     artifact_tarball_file_name = '{ns!s}-{name!s}-{ver!s}.tar.gz'.format(
@@ -1063,9 +1062,8 @@ def _make_entry(name, ftype, chksum_type='sha256', chksum=None):
     }
 
 
-def _build_files_manifest(b_collection_path, namespace, name, ignore_patterns,
-                          manifest_control, license_file):
-    # type: (bytes, str, str, list[str], dict[str, t.Any], t.Optional[str]) -> FilesManifestType
+def _build_files_manifest(b_collection_path, namespace, name, ignore_patterns, manifest_control):
+    # type: (bytes, str, str, list[str], dict[str, t.Any]) -> FilesManifestType
     if ignore_patterns and manifest_control is not Sentinel:
         raise AnsibleError('"build_ignore" and "manifest" are mutually exclusive')
 
@@ -1075,15 +1073,14 @@ def _build_files_manifest(b_collection_path, namespace, name, ignore_patterns,
             namespace,
             name,
             manifest_control,
-            license_file,
         )
 
     return _build_files_manifest_walk(b_collection_path, namespace, name, ignore_patterns)
 
 
-def _build_files_manifest_distlib(b_collection_path, namespace, name, manifest_control,
-                                  license_file):
-    # type: (bytes, str, str, dict[str, t.Any], t.Optional[str]) -> FilesManifestType
+def _build_files_manifest_distlib(b_collection_path, namespace, name, manifest_control):
+    # type: (bytes, str, str, dict[str, t.Any]) -> FilesManifestType
+
     if not HAS_DISTLIB:
         raise AnsibleError('Use of "manifest" requires the python "distlib" library')
 
@@ -1116,19 +1113,14 @@ def _build_files_manifest_distlib(b_collection_path, namespace, name, manifest_c
     else:
         directives.extend([
             'include meta/*.yml',
-            'include *.txt *.md *.rst *.license COPYING LICENSE',
-            'recursive-include .reuse **',
-            'recursive-include LICENSES **',
+            'include *.txt *.md *.rst COPYING LICENSE',
             'recursive-include tests **',
-            'recursive-include docs **.rst **.yml **.yaml **.json **.j2 **.txt **.license',
-            'recursive-include roles **.yml **.yaml **.json **.j2 **.license',
-            'recursive-include playbooks **.yml **.yaml **.json **.license',
-            'recursive-include changelogs **.yml **.yaml **.license',
-            'recursive-include plugins */**.py */**.license',
+            'recursive-include docs **.rst **.yml **.yaml **.json **.j2 **.txt',
+            'recursive-include roles **.yml **.yaml **.json **.j2',
+            'recursive-include playbooks **.yml **.yaml **.json',
+            'recursive-include changelogs **.yml **.yaml',
+            'recursive-include plugins */**.py',
         ])
-
-        if license_file:
-            directives.append(f'include {license_file}')
 
         plugins = set(l.package.split('.')[-1] for d, l in get_all_plugin_loaders())
         for plugin in sorted(plugins):
@@ -1140,8 +1132,8 @@ def _build_files_manifest_distlib(b_collection_path, namespace, name, manifest_c
                 )
 
         directives.extend([
-            'recursive-include plugins/modules **.ps1 **.yml **.yaml **.license',
-            'recursive-include plugins/module_utils **.ps1 **.psm1 **.cs **.license',
+            'recursive-include plugins/modules **.ps1 **.yml **.yaml',
+            'recursive-include plugins/module_utils **.ps1 **.psm1 **.cs',
         ])
 
         directives.extend(control.directives)
@@ -1149,7 +1141,7 @@ def _build_files_manifest_distlib(b_collection_path, namespace, name, manifest_c
         directives.extend([
             f'exclude galaxy.yml galaxy.yaml MANIFEST.json FILES.json {namespace}-{name}-*.tar.gz',
             'recursive-exclude tests/output **',
-            'global-exclude /.* /__pycache__ *.pyc *.pyo *.bak *~ *.swp',
+            'global-exclude /.* /__pycache__',
         ])
 
     display.vvv('Manifest Directives:')
@@ -1591,7 +1583,6 @@ def install_src(collection, b_collection_path, b_collection_output_path, artifac
         collection_meta['namespace'], collection_meta['name'],
         collection_meta['build_ignore'],
         collection_meta['manifest'],
-        collection_meta['license_file'],
     )
 
     collection_output_path = _build_collection_dir(

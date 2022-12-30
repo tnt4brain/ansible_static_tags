@@ -22,11 +22,11 @@ if test $? != 0 ; then
 fi
 
 #
-# Check that if no modules are rejected then Ansible should not through traceback
+# Check that if no modules are blacklisted then Ansible should not through traceback
 #
-ANSIBLE_CONFIG=no_rejectlist_module.ini ansible-playbook tempfile.yml  -i ../../inventory -vvv "$@"
+ANSIBLE_CONFIG=no_blacklist_module.ini ansible-playbook tempfile.yml  -i ../../inventory -vvv "$@"
 if test $? != 0 ; then
-	echo "### Failed to run tempfile with no modules rejected"
+	echo "### Failed to run tempfile with no modules blacklisted"
 	exit 1
 fi
 
@@ -87,7 +87,7 @@ fi
 
 ANSIBLE_CONFIG=filter_lookup.ini ansible-playbook lookup.yml -i ../../inventory -vvv "$@"
 if test $? != 0 ; then
-	echo "### Failed to use a lookup plugin when it is incorrectly specified in the *module* reject list"
+	echo "### Failed to use a lookup plugin when it is incorrectly specified in the *module* blacklist"
 	exit 1
 fi
 
@@ -107,10 +107,10 @@ ANSIBLE_CONFIG=filter_stat.ini
 export ANSIBLE_CONFIG
 CAPTURE=$(ansible-playbook copy.yml  -i ../../inventory -vvv "$@" 2>&1)
 if test $? = 0 ; then
-	echo "### Copy ran even though stat is in the module reject list"
+	echo "### Copy ran even though stat is in the module blacklist"
 	exit 1
 else
-	echo "$CAPTURE" | grep 'The stat module was specified in the module reject list file,.*, but Ansible will not function without the stat module.  Please remove stat from the reject list.'
+	echo "$CAPTURE" | grep 'The stat module was specified in the module blacklist file,.*, but Ansible will not function without the stat module.  Please remove stat from the blacklist.'
 	if test $? != 0 ; then
 		echo "### Stat did not give us our custom error message"
 		exit 1
@@ -124,10 +124,10 @@ ANSIBLE_CONFIG=filter_stat.ini
 export ANSIBLE_CONFIG
 CAPTURE=$(ansible-playbook stat.yml  -i ../../inventory -vvv "$@" 2>&1)
 if test $? = 0 ; then
-	echo "### Stat ran even though it is in the module reject list"
+	echo "### Stat ran even though it is in the module blacklist"
 	exit 1
 else
-	echo "$CAPTURE" | grep 'The stat module was specified in the module reject list file,.*, but Ansible will not function without the stat module.  Please remove stat from the reject list.'
+	echo "$CAPTURE" | grep 'The stat module was specified in the module blacklist file,.*, but Ansible will not function without the stat module.  Please remove stat from the blacklist.'
 	if test $? != 0 ; then
 		echo "### Stat did not give us our custom error message"
 		exit 1

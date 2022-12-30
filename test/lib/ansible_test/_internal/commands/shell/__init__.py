@@ -9,8 +9,6 @@ from ...util import (
     ApplicationError,
     OutputStream,
     display,
-    SubprocessError,
-    HostConnectionError,
 )
 
 from ...config import (
@@ -117,19 +115,4 @@ def command_shell(args: ShellConfig) -> None:
     else:
         cmd = []
 
-    try:
-        con.run(cmd, capture=False, interactive=True)
-    except SubprocessError as ex:
-        if isinstance(con, SshConnection) and ex.status == 255:
-            # 255 indicates SSH itself failed, rather than a command run on the remote host.
-            # In this case, report a host connection error so additional troubleshooting output is provided.
-            if not args.delegate and not args.host_path:
-                def callback() -> None:
-                    """Callback to run during error display."""
-                    target_profile.on_target_failure()  # when the controller is not delegated, report failures immediately
-            else:
-                callback = None
-
-            raise HostConnectionError(f'SSH shell connection failed for host {target_profile.config}: {ex}', callback) from ex
-
-        raise
+    con.run(cmd, capture=False, interactive=True)
